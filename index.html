@@ -128,9 +128,6 @@
       font-weight: bold;
       color: #ffffff;
       margin-bottom: 6px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
     }
 
     .result-address {
@@ -148,76 +145,3 @@
       background-color: #22c55e;
       color: #ffffff;
       text-decoration: none;
-      font-weight: bold;
-      transition: background-color 0.2s;
-    }
-
-    .result-phone-btn:hover {
-      background-color: #16a34a;
-    }
-
-    /* ===== [CSS] 오른쪽 지도 영역 ===== */
-    .map-container {
-      flex: 1;
-      height: 100%;
-    }
-
-    /* Custom Overlay 빛 아이콘 스타일 */
-    .light-marker {
-      padding: 6px 10px;
-      border-radius: 20px;
-      font-size: 13px;
-      font-weight: bold;
-      color: white;
-      white-space: nowrap;
-      cursor: pointer;
-      box-shadow: 0 0 12px rgba(255, 255, 255, 0.8);
-      animation: pulse 1.5s infinite alternate;
-    }
-
-    /* 파란색 빛 (편의점) */
-    .light-marker.blue {
-      background-color: #2563eb;
-      border: 2px solid #60a5fa;
-      box-shadow: 0 0 15px #3b82f6;
-    }
-
-    /* 빨간색 빛 (파출소) */
-    .light-marker.red {
-      background-color: #dc2626;
-      border: 2px solid #f87171;
-      box-shadow: 0 0 15px #ef4444;
-    }
-
-    /* 노란색 빛 (현재 위치) */
-    .light-marker.yellow {
-      background-color: #ca8a04;
-      border: 2px solid #fde047;
-      box-shadow: 0 0 15px #eab308;
-    }
-
-    @keyframes pulse {
-      0% { transform: scale(1); }
-      100% { transform: scale(1.08); }
-    }
-  </style>
-
-  <!-- 카카오맵 SDK (서비스 라이브러리 포함) -->
-  <script src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=739a6999d649b317a921d5661b8df36f&libraries=services"></script>
-</head>
-<body>
-
-  <div class="app-container">
-    
-    <!-- 왼쪽 사이드바 -->
-    <div class="sidebar">
-      <div class="header-box">
-        <div class="header-title">🌙 야간 안심 귀가 지도</div>
-        <div class="header-sub">밤길 위험할 때 주변 불이 켜진 대피처를 찾아보세요.</div>
-      </div>
-
-      <!-- 탭 버튼 -->
-      <div class="tab-container">
-        <button id="tab-convenience" class="tab-button convenience active" onclick="switchTab('convenience')">
-          💡 편의점 (CS2)
-        </button>
