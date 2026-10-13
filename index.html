@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>야간 안심 귀가 지도 🌙</title>
+  
+  <style>
+    /* ===== [CSS] 기본 스타일 및 밤길 다크 테마 ===== */
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      font-family: 'Noto Sans KR', sans-serif;
+      background-color: #121826;
+      color: #ffffff;
+    }
+
+    /* 좌/우 2분할 레이아웃 */
+    .app-container {
+      display: flex;
+      width: 100vw;
+      height: 100vh;
+    }
+
+    /* ===== [CSS] 왼쪽 사이드바 ===== */
+    .sidebar {
+      width: 380px;
+      height: 100%;
+      background-color: #1a2234;
+      border-right: 1px solid #2e3a52;
+      display: flex;
+      flex-direction: column;
+      z-index: 2;
+      box-shadow: 4px 0 15px rgba(0, 0, 0, 0.4);
+    }
+
+    /* 헤더 영역 */
+    .header-box {
+      padding: 20px 15px 10px;
+      background-color: #121826;
+      border-bottom: 1px solid #2e3a52;
+    }
+
+    .header-title {
+      font-size: 18px;
+      font-weight: bold;
+      color: #ffe600; /* 빛나는 노란색 */
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .header-sub {
+      font-size: 12px;
+      color: #94a3b8;
+      margin-top: 4px;
+    }
+
+    /* 탭 버튼 영역 */
+    .tab-container {
+      display: flex;
+      background-color: #121826;
+      padding: 10px 15px;
+      gap: 10px;
+      border-bottom: 1px solid #2e3a52;
+    }
+
+    .tab-button {
+      flex: 1;
+      padding: 10px;
+      border: 1px solid #2e3a52;
+      border-radius: 8px;
+      background-color: #1a2234;
+      color: #94a3b8;
+      font-size: 14px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: all 0.3s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+
+    /* 탭 1 (편의점) 활성화 - 파란 빛 */
+    .tab-button.convenience.active {
+      background-color: #0d3b66;
+      color: #60a5fa;
+      border-color: #3b82f6;
+      box-shadow: 0 0 10px rgba(59, 130, 246, 0.5);
+    }
+
+    /* 탭 2 (파출소) 활성화 - 빨간 빛 */
+    .tab-button.police.active {
+      background-color: #4a1525;
+      color: #f87171;
+      border-color: #ef4444;
+      box-shadow: 0 0 10px rgba(239, 68, 68, 0.5);
+    }
+
+    /* 검색 결과 목록 */
+    .results-list {
+      flex: 1;
+      overflow-y: auto;
+      list-style: none;
+    }
+
+    .result-item {
+      padding: 16px;
+      border-bottom: 1px solid #2e3a52;
+      cursor: pointer;
+      background-color: #1a2234;
+      transition: background-color 0.2s;
+    }
+
+    .result-item:hover {
+      background-color: #242f47;
+    }
+
+    .result-title {
+      font-size: 15px;
+      font-weight: bold;
+      color: #ffffff;
+      margin-bottom: 6px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .result-address {
+      font-size: 13px;
+      color: #94a3b8;
+      line-height: 1.4;
+    }
+
+    .result-phone-btn {
+      display: inline-block;
+      margin-top: 10px;
+      padding: 6px 12px;
+      font-size: 12px;
+      border-radius: 4px;
+      background-color: #22c55e;
+      color: #ffffff;
+      text-decoration: none;
+      font-weight: bold;
+      transition: background-color 0.2s;
+    }
+
+    .result-phone-btn:hover {
+      background-color: #16a34a;
+    }
+
+    /* ===== [CSS] 오른쪽 지도 영역 ===== */
+    .map-container {
+      flex: 1;
+      height: 100%;
+    }
+
+    /* Custom Overlay 빛 아이콘 스타일 */
+    .light-marker {
+      padding: 6px 10px;
+      border-radius: 20px;
+      font-size: 13px;
+      font-weight: bold;
+      color: white;
+      white-space: nowrap;
+      cursor: pointer;
+      box-shadow: 0 0 12px rgba(255, 255, 255, 0.8);
+      animation: pulse 1.5s infinite alternate;
+    }
+
+    /* 파란색 빛 (편의점) */
+    .light-marker.blue {
+      background-color: #2563eb;
+      border: 2px solid #60a5fa;
+      box-shadow: 0 0 15px #3b82f6;
+    }
+
+    /* 빨간색 빛 (파출소) */
+    .light-marker.red {
+      background-color: #dc2626;
+      border: 2px solid #f87171;
+      box-shadow: 0 0 15px #ef4444;
+    }
+
+    /* 노란색 빛 (현재 위치) */
+    .light-marker.yellow {
+      background-color: #ca8a04;
+      border: 2px solid #fde047;
+      box-shadow: 0 0 15px #eab308;
+    }
+
+    @keyframes pulse {
+      0% { transform: scale(1); }
+      100% { transform: scale(1.08); }
+    }
+  </style>
+
+  <!-- 카카오맵 SDK (서비스 라이브러리 포함) -->
+  <script src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=739a6999d649b317a921d5661b8df36f&libraries=services"></script>
+</head>
+<body>
+
+  <div class="app-container">
+    
+    <!-- 왼쪽 사이드바 -->
+    <div class="sidebar">
+      <div class="header-box">
+        <div class="header-title">🌙 야간 안심 귀가 지도</div>
+        <div class="header-sub">밤길 위험할 때 주변 불이 켜진 대피처를 찾아보세요.</div>
+      </div>
+
+      <!-- 탭 버튼 -->
+      <div class="tab-container">
+        <button id="tab-convenience" class="tab-button convenience active" onclick="switchTab('convenience')">
+          💡 편의점 (CS2)
+        </button>
