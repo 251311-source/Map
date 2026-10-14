@@ -60,7 +60,7 @@
       transition: color 0.5s;
     }
 
-    /* 과거 / 현재 전환 탭 */
+    /* 메인 탭: 과거 / 현재 */
     .time-tabs {
       display: flex;
       margin: 0 16px;
@@ -71,12 +71,12 @@
 
     .time-tab {
       flex: 1;
-      padding: 10px 0;
+      padding: 11px 0;
       border: none;
       background: transparent;
       color: var(--accent);
-      font-size: 14px;
-      font-weight: 600;
+      font-size: 15px;
+      font-weight: 700;
       cursor: pointer;
       transition: background 0.3s, color 0.3s;
     }
@@ -86,11 +86,50 @@
       color: #fff;
     }
 
+    /* 하위 탭: 주제 선택 (알약 모양 버튼) */
+    .theme-tabs {
+      display: flex;
+      gap: 8px;
+      padding: 12px 16px 0;
+    }
+
+    .theme-tab {
+      flex: 1;
+      padding: 8px 0;
+      border: 1px solid #ddd;
+      border-radius: 999px;
+      background: #fff;
+      color: #555;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s, border-color 0.2s, color 0.2s;
+    }
+
+    .theme-tab:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    .theme-tab.active {
+      border-color: var(--accent);
+      background: var(--accent-light);
+      color: var(--accent-dark);
+    }
+
     .mode-description {
       padding: 10px 16px 0;
       font-size: 13px;
       color: #666;
       line-height: 1.5;
+    }
+
+    /* 짝이 되는 주제 안내 */
+    .pair-hint {
+      padding: 4px 16px 0;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--accent);
     }
 
     /* 검색창 */
@@ -252,7 +291,7 @@
       box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
       cursor: pointer;
       opacity: 0;
-      pointer-events: none; /* 숨어 있을 때는 클릭 안 되게 */
+      pointer-events: none;
       transform: translate(-50%, -12px);
       transition: opacity 0.25s, transform 0.25s;
     }
@@ -475,16 +514,15 @@
 
       .sidebar {
         width: 100%;
-        height: 50vh;
+        height: 55vh;
         border-right: none;
         border-bottom: 1px solid #ddd;
       }
 
       .map-wrapper {
-        height: 50vh;
+        height: 45vh;
       }
 
-      /* 좁은 화면에서는 배지와 겹치지 않게 버튼을 아래로 */
       .research-button {
         top: 60px;
       }
@@ -497,15 +535,21 @@
 
 <body class="past-mode">
   <div class="container">
-    <!-- 왼쪽: 모드 탭 + 검색창 + 결과 리스트 -->
+    <!-- 왼쪽: 메인 탭 + 하위 탭 + 검색창 + 결과 리스트 -->
     <aside class="sidebar">
       <h1 class="app-title">⏳ 시간여행자 지도</h1>
 
+      <!-- 메인 탭 -->
       <div class="time-tabs">
-        <button class="time-tab active" data-mode="past">🏯 과거 · 문화유산</button>
-        <button class="time-tab" data-mode="present">🛍️ 현재 · 대형쇼핑</button>
+        <button class="time-tab active" data-mode="past">과거</button>
+        <button class="time-tab" data-mode="present">현재</button>
       </div>
+
+      <!-- 하위 탭 (JS가 모드에 맞게 버튼을 만들어 넣음) -->
+      <div id="themeTabs" class="theme-tabs"></div>
+
       <p id="modeDescription" class="mode-description"></p>
+      <p id="pairHint" class="pair-hint"></p>
 
       <form id="searchForm" class="search-form">
         <input id="keywordInput" type="text" placeholder="장소를 직접 검색할 수도 있어요" />
@@ -536,24 +580,55 @@
     const MOVE_THRESHOLD = 300;                               // 이 거리(미터) 이상 움직이면 재검색 버튼 표시
     const DEFAULT_POSITION = { lat: 37.5665, lng: 126.978 };  // 위치 권한이 없을 때 기본 위치 (서울시청)
 
-    // 모드별 설정
-    // searchType이 "keyword"면 키워드 검색, "category"면 카테고리 코드 검색
+    // 모드별 하위 주제 설정
+    // - categoryCode가 있으면 카테고리 코드로 검색, 없으면 keyword로 검색
+    // - 과거와 현재의 같은 순서(0, 1, 2)끼리 서로 대조되는 짝
     const TIME_MODES = {
       past: {
-        searchType: "keyword",
-        keyword: "문화유산",
-        summaryName: "문화유산",
-        icon: "🏯",
-        badge: "🏯 과거 모드",
-        description: "과거로 떠나는 여행: 옛 시간의 흔적, 문화유산을 찾아봅니다. 지도를 움직이면 다른 지역도 탐험할 수 있어요.",
+        label: "과거",
+        themes: [
+          {
+            name: "문화유산",
+            icon: "🏯",
+            keyword: "문화유산",
+            description: "옛 사람들의 시간이 남아 있는 문화유산을 찾아봅니다.",
+          },
+          {
+            name: "전통시장",
+            icon: "🧺",
+            keyword: "전통시장",
+            description: "동네 사람들이 모여 장을 보던 전통시장을 찾아봅니다.",
+          },
+          {
+            name: "다방",
+            icon: "🫖",
+            keyword: "다방",
+            description: "예전 사람들이 만나고 이야기하던 다방을 찾아봅니다.",
+          },
+        ],
       },
       present: {
-        searchType: "category",
-        categoryCode: "MT1", // 카카오 카테고리 코드: MT1 = 대형마트
-        summaryName: "대형마트",
-        icon: "🛍️",
-        badge: "🛍️ 현재 모드",
-        description: "현재로 돌아오기: 같은 동네가 지금은 어떤 모습인지, 대형마트를 찾아봅니다. 지도를 움직이면 다른 지역도 탐험할 수 있어요.",
+        label: "현재",
+        themes: [
+          {
+            name: "문화시설",
+            icon: "🎭",
+            categoryCode: "CT1", // 문화시설
+            description: "지금 사람들이 문화를 즐기는 공연장·미술관·전시관을 찾아봅니다.",
+          },
+          {
+            name: "대형마트",
+            icon: "🛒",
+            categoryCode: "MT1", // 대형마트
+            description: "오늘날 장보기의 중심이 된 대형마트를 찾아봅니다.",
+          },
+          {
+            name: "카페",
+            icon: "☕",
+            categoryCode: "CE7", // 카페
+            description: "요즘 사람들이 만나고 이야기하는 카페를 찾아봅니다.",
+          },
+        ],
       },
     };
 
@@ -564,14 +639,15 @@
     let myLocationOverlay = null;
     let placeEntries = [];
     let selectedIndex = -1;
-    let currentMode = "past";
+    let currentMode = "past";      // 메인 탭: "past" 또는 "present"
+    let currentThemeIndex = 0;     // 하위 탭 번호 (0, 1, 2)
     let userPosition = null;
     let hasUserLocation = false;
 
     // 재검색 버튼 판단용 변수
-    let savedCenter = null;       // 마지막으로 기준이 된 지도 중심
-    let savedLevel = MAP_LEVEL;   // 마지막으로 기준이 된 확대 레벨
-    let isAutoMoving = false;     // 코드가 지도를 움직이는 중인지 (사용자 조작과 구분)
+    let savedCenter = null;
+    let savedLevel = MAP_LEVEL;
+    let isAutoMoving = false;
     let autoMoveTimer = null;
 
     const searchForm = document.getElementById("searchForm");
@@ -579,7 +655,9 @@
     const resultList = document.getElementById("resultList");
     const resultSummary = document.getElementById("resultSummary");
     const modeDescription = document.getElementById("modeDescription");
+    const pairHint = document.getElementById("pairHint");
     const modeBadge = document.getElementById("modeBadge");
+    const themeTabs = document.getElementById("themeTabs");
     const researchButton = document.getElementById("researchButton");
     const locateButton = document.getElementById("locateButton");
     const timeTabs = document.querySelectorAll(".time-tab");
@@ -614,9 +692,9 @@
       // 지도 빈 곳 클릭 → 팝업 닫기
       kakao.maps.event.addListener(map, "click", closeDetailPopup);
 
-      // 지도 이동/확대가 끝날 때마다 실행 → 사용자가 움직였으면 재검색 버튼 표시
+      // 지도 이동/확대가 끝날 때마다 → 사용자가 움직였으면 재검색 버튼 표시
       kakao.maps.event.addListener(map, "idle", function () {
-        if (isAutoMoving) return; // 코드가 움직인 경우는 무시
+        if (isAutoMoving) return;
         if (hasMapMoved()) {
           showResearchButton();
         }
@@ -625,10 +703,10 @@
       // 재검색 버튼 → 지금 보이는 지역에서 검색
       researchButton.addEventListener("click", function () {
         closeDetailPopup();
-        searchByMode("currentView");
+        searchByTheme("currentView");
       });
 
-      // 과거 / 현재 탭
+      // 메인 탭 (과거 / 현재)
       timeTabs.forEach(function (tab) {
         tab.addEventListener("click", function () {
           changeMode(tab.dataset.mode);
@@ -650,48 +728,93 @@
       // 내 위치 버튼 → 내 위치로 이동 + 내 주변 다시 검색
       locateButton.addEventListener("click", function () {
         if (!hasUserLocation) {
-          moveToCurrentLocation(); // 아직 위치가 없으면 다시 요청
+          moveToCurrentLocation();
           return;
         }
         closeDetailPopup();
         markAutoMove();
         map.setLevel(MAP_LEVEL);
         map.setCenter(userPosition);
-        searchByMode("myLocation");
+        searchByTheme("myLocation");
       });
 
+      renderThemeTabs();
       updateModeUI();
       moveToCurrentLocation();
     }
 
-    // ===== 과거 / 현재 모드 전환 =====
+    // ===== 지금 선택된 주제 가져오기 =====
+    function getCurrentTheme() {
+      return TIME_MODES[currentMode].themes[currentThemeIndex];
+    }
+
+    // ===== 메인 탭 전환 (과거 ↔ 현재) =====
     function changeMode(newMode) {
       if (newMode === currentMode) return;
 
       currentMode = newMode;
+      // currentThemeIndex는 그대로 둠 → 짝이 되는 주제로 바로 넘어가서 비교 가능
+
       document.body.classList.toggle("past-mode", currentMode === "past");
 
       timeTabs.forEach(function (tab) {
         tab.classList.toggle("active", tab.dataset.mode === currentMode);
       });
 
+      renderThemeTabs();
       updateModeUI();
       keywordInput.value = "";
-
-      // 지금 보고 있는 지역 그대로 과거/현재를 비교할 수 있게 화면 기준으로 검색
-      searchByMode("currentView");
+      searchByTheme("currentView");
     }
 
+    // ===== 하위 탭 전환 =====
+    function changeTheme(newIndex) {
+      if (newIndex === currentThemeIndex) return;
+
+      currentThemeIndex = newIndex;
+      renderThemeTabs();
+      updateModeUI();
+      keywordInput.value = "";
+      searchByTheme("currentView");
+    }
+
+    // ===== 하위 탭 버튼 만들기 (모드가 바뀔 때마다 새로 그림) =====
+    function renderThemeTabs() {
+      themeTabs.innerHTML = "";
+
+      TIME_MODES[currentMode].themes.forEach(function (theme, index) {
+        const tabButton = createElement("button", "theme-tab", theme.icon + " " + theme.name);
+        tabButton.type = "button";
+
+        if (index === currentThemeIndex) {
+          tabButton.classList.add("active");
+        }
+
+        tabButton.addEventListener("click", function () {
+          changeTheme(index);
+        });
+
+        themeTabs.appendChild(tabButton);
+      });
+    }
+
+    // ===== 설명, 짝 안내, 배지 문구 갱신 =====
     function updateModeUI() {
-      modeDescription.textContent = TIME_MODES[currentMode].description;
-      modeBadge.textContent = TIME_MODES[currentMode].badge;
+      const theme = getCurrentTheme();
+      const otherMode = currentMode === "past" ? "present" : "past";
+      const pairTheme = TIME_MODES[otherMode].themes[currentThemeIndex];
+
+      modeDescription.textContent = theme.description;
+      pairHint.textContent =
+        "↔ 비교 대상: " + TIME_MODES[otherMode].label + " · " + pairTheme.icon + " " + pairTheme.name;
+      modeBadge.textContent = TIME_MODES[currentMode].label + " · " + theme.icon + " " + theme.name;
     }
 
     // ===== 현재 위치 받아오기 =====
     function moveToCurrentLocation() {
       if (!navigator.geolocation) {
         alert("이 브라우저는 위치 정보를 지원하지 않아 기본 위치(서울시청)로 표시합니다.");
-        searchByMode("myLocation");
+        searchByTheme("myLocation");
         return;
       }
 
@@ -706,11 +829,11 @@
           markAutoMove();
           map.setCenter(userPosition);
           showMyLocation();
-          searchByMode("myLocation");
+          searchByTheme("myLocation");
         },
         function () {
           // 위치 거부 또는 실패 → 기본 위치 기준 검색
-          searchByMode("myLocation");
+          searchByTheme("myLocation");
         },
         { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
       );
@@ -738,10 +861,10 @@
       });
     }
 
-    // ===== 모드별 검색 =====
+    // ===== 선택된 주제로 검색 =====
     // searchArea: "myLocation" (내 위치 주변) 또는 "currentView" (지금 보이는 화면)
-    function searchByMode(searchArea) {
-      const mode = TIME_MODES[currentMode];
+    function searchByTheme(searchArea) {
+      const theme = getCurrentTheme();
       let center, radius, distanceLabel, areaText;
 
       if (searchArea === "myLocation") {
@@ -763,16 +886,17 @@
       };
 
       const resultHandler = createResultHandler({
-        fitBounds: searchArea === "myLocation", // 내 위치 검색일 때만 결과에 맞춰 지도 조정
+        fitBounds: searchArea === "myLocation",
         distanceLabel: distanceLabel,
-        summaryText: mode.summaryName + " · " + areaText,
+        icon: theme.icon,
+        summaryText: TIME_MODES[currentMode].label + " · " + theme.name + " · " + areaText,
       });
 
-      // 모드 설정에 따라 키워드 검색 / 카테고리 검색 선택
-      if (mode.searchType === "category") {
-        placesService.categorySearch(mode.categoryCode, resultHandler, searchOptions);
+      // 카테고리 코드가 있으면 코드로, 없으면 키워드로 검색
+      if (theme.categoryCode) {
+        placesService.categorySearch(theme.categoryCode, resultHandler, searchOptions);
       } else {
-        placesService.keywordSearch(mode.keyword, resultHandler, searchOptions);
+        placesService.keywordSearch(theme.keyword, resultHandler, searchOptions);
       }
     }
 
@@ -781,6 +905,7 @@
       const resultHandler = createResultHandler({
         fitBounds: true,
         distanceLabel: "화면 중심에서",
+        icon: "🔍",
         summaryText: "'" + keyword + "' 검색 결과",
       });
 
@@ -801,7 +926,7 @@
     function createResultHandler(searchInfo) {
       return function (places, status) {
         hideResearchButton();
-        saveMapState(); // 지금 위치를 새 기준으로 저장
+        saveMapState();
 
         if (status === kakao.maps.services.Status.OK) {
           displayPlaces(places, searchInfo);
@@ -824,15 +949,14 @@
       resultList.innerHTML = "";
 
       const bounds = new kakao.maps.LatLngBounds();
-      const modeIcon = TIME_MODES[currentMode].icon;
 
       places.forEach(function (place, index) {
         const placePosition = new kakao.maps.LatLng(place.y, place.x);
         bounds.extend(placePosition);
 
-        // 모드별 핀
+        // 모드 색상 + 주제 아이콘으로 핀 만들기
         const pinElement = createElement("div", "place-pin " + currentMode);
-        pinElement.appendChild(createElement("span", "pin-icon", modeIcon));
+        pinElement.appendChild(createElement("span", "pin-icon", searchInfo.icon));
         pinElement.addEventListener("click", function () {
           selectPlace(index);
         });
@@ -849,7 +973,7 @@
 
         // 리스트 항목
         const listItem = createElement("li", "result-item");
-        listItem.appendChild(createElement("div", "result-icon", modeIcon));
+        listItem.appendChild(createElement("div", "result-icon", searchInfo.icon));
 
         const textBox = createElement("div");
         textBox.appendChild(createElement("div", "place-name", place.place_name));
@@ -875,6 +999,7 @@
           pinElement: pinElement,
           pinOverlay: pinOverlay,
           listItem: listItem,
+          icon: searchInfo.icon,
           distanceLabel: searchInfo.distanceLabel,
         });
       });
@@ -913,7 +1038,7 @@
 
       const header = createElement("div", "popup-header");
       header.appendChild(
-        createElement("span", "popup-category", TIME_MODES[currentMode].icon + " " + getCategoryName(place))
+        createElement("span", "popup-category", entry.icon + " " + getCategoryName(place))
       );
 
       const closeButton = createElement("button", "popup-close", "×");
@@ -991,7 +1116,7 @@
       savedLevel = map.getLevel();
     }
 
-    // 기준에서 충분히 움직였는지 (확대 레벨이 바뀌었거나 일정 거리 이상 이동)
+    // 기준에서 충분히 움직였는지 (확대 레벨 변경 또는 일정 거리 이상 이동)
     function hasMapMoved() {
       if (!savedCenter) return false;
       return map.getLevel() !== savedLevel || getDistance(map.getCenter(), savedCenter) > MOVE_THRESHOLD;
@@ -1017,6 +1142,7 @@
 
     // ===== 도우미 함수들 =====
 
+    // 태그 + 클래스 + 글자를 한 번에 만드는 함수
     function createElement(tagName, className, text) {
       const element = document.createElement(tagName);
       if (className) element.className = className;
@@ -1024,10 +1150,12 @@
       return element;
     }
 
+    // "음식점 > 카페 > 커피전문점" → "커피전문점"
     function getCategoryName(place) {
       return place.category_name.split(" > ").pop() || "장소";
     }
 
+    // 1000m 이상은 km로 표시
     function formatDistance(distanceValue) {
       const meters = Number(distanceValue);
       return meters >= 1000 ? (meters / 1000).toFixed(1) + "km" : meters + "m";
@@ -1052,6 +1180,7 @@
       return 2 * EARTH_RADIUS * Math.asin(Math.sqrt(value));
     }
 
+    // 왼쪽 리스트에 안내 메시지 표시
     function showMessage(text) {
       resultList.innerHTML = "";
       resultList.appendChild(createElement("li", "message", text));
