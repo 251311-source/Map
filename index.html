@@ -936,13 +936,14 @@
     const MODE_COLORS = { past: "#a16207", present: "#2563eb" };
 
     // 모드별 하위 주제 (같은 순서끼리 짝, categoryCode가 없으면 keyword로 검색)
+     // 모드별 하위 주제 (같은 순서끼리 짝, categoryCode가 없으면 keyword로 검색)
     const TIME_MODES = {
       past: {
         label: "과거",
         themes: [
-          { name: "문화유산", icon: "🏯", keyword: "문화유산", description: "옛 사람들의 시간이 남아 있는 문화유산을 찾아봅니다." },
+          { name: "고궁", icon: "🏯", keyword: "고", description: "옛 왕실의 시간이 남아 있는 고궁을 찾아봅니다." },
           { name: "전통시장", icon: "🧺", keyword: "전통시장", description: "동네 사람들이 모여 장을 보던 전통시장을 찾아봅니다." },
-          { name: "복덕방", icon: "🏠", keyword: "복덕방", description: "동네 사랑방처럼 사람들이 모이고 집과 땅을 소개해 주던 복덕방을 찾아봅니다." },
+          { name: "향교", icon: "📜", keyword: "향교", description: "조선 시대 나라에서 세운 지방 교육기관, 향교를 찾아봅니다." },
         ],
       },
       present: {
@@ -950,7 +951,7 @@
         themes: [
           { name: "문화시설", icon: "🎭", categoryCode: "CT1", description: "지금 사람들이 문화를 즐기는 공연장·미술관·전시관을 찾아봅니다." },
           { name: "대형마트", icon: "🛒", categoryCode: "MT1", description: "오늘날 장보기의 중심이 된 대형마트를 찾아봅니다." },
-          { name: "부동산", icon: "🏢", categoryCode: "AG2", description: "지금 집을 구할 때 찾아가는 공인중개사무소, 부동산을 찾아봅니다." },
+          { name: "학원", icon: "✏️", categoryCode: "AC5", description: "오늘날 공부의 또 다른 중심이 된 학원을 찾아봅니다." },
         ],
       },
     };
