@@ -5,6 +5,12 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>시간여행자 지도</title>
 
+  <!-- 글꼴: 고운바탕(과거 제목용 명조체), 프리텐다드(본문용 고딕체) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
+
   <style>
     /* ===== 기본 설정 ===== */
     * {
@@ -19,38 +25,57 @@
 
     /* 공통 색상 */
     :root {
-      --past: #a16207;
+      --past: #9a5b13;
       --present: #2563eb;
       --my-location: #ef4444;
+      --font-body: "Pretendard", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+      --font-classic: "Gowun Batang", "Batang", serif;
     }
 
-    /* 테마별 색상 묶음: 이 클래스가 붙은 요소 안에서는 --accent 색이 바뀜 */
+    /* 테마별 색상 묶음: 이 클래스가 붙은 요소 안에서는 색이 바뀜 */
     .theme-past {
-      --accent: #a16207;
-      --accent-dark: #854d0e;
-      --accent-light: #fdf6e3;
-      --sidebar-bg: #fffaf0;
+      --accent: #9a5b13;
+      --accent-dark: #6b3d0c;
+      --accent-light: #f6ead3;
+      --sidebar-bg: #fbf5ea;
+      --surface: #fffdf8;
+      --border: #eadcc3;
+      --text-sub: #7a6a55;
+      --font-heading: var(--font-classic);
     }
 
     .theme-present {
       --accent: #2563eb;
       --accent-dark: #1d4ed8;
-      --accent-light: #eff6ff;
-      --sidebar-bg: #ffffff;
+      --accent-light: #eaf1ff;
+      --sidebar-bg: #f5f7fb;
+      --surface: #ffffff;
+      --border: #e2e8f0;
+      --text-sub: #64748b;
+      --font-heading: var(--font-body);
     }
 
     .theme-note {
       --accent: #7c3aed;
-      --accent-dark: #6d28d9;
-      --accent-light: #f5f3ff;
-      --sidebar-bg: #fcfbff;
+      --accent-dark: #5b21b6;
+      --accent-light: #f1eaff;
+      --sidebar-bg: #f9f7ff;
+      --surface: #ffffff;
+      --border: #e7e0f7;
+      --text-sub: #6b6480;
+      --font-heading: var(--font-body);
     }
 
     html,
     body {
       height: 100%;
-      font-family: "Pretendard", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
-      color: #222;
+      font-family: var(--font-body);
+      color: #1f2328;
+    }
+
+    button,
+    input {
+      font-family: inherit;
     }
 
     /* ===== 전체 레이아웃: 좌우 2분할 ===== */
@@ -61,52 +86,112 @@
 
     /* ===== 왼쪽 사이드바 ===== */
     .sidebar {
-      width: 380px;
+      position: relative;
+      z-index: 20;
+      width: 390px;
       display: flex;
       flex-direction: column;
       overflow: hidden;
-      border-right: 1px solid #ddd;
-      background: var(--sidebar-bg);
+      background-color: var(--sidebar-bg);
+      box-shadow: 4px 0 24px rgba(0, 0, 0, 0.08);
+      transition: background-color 0.5s;
+    }
+
+    /* 과거 모드: 한지 같은 종이 질감 */
+    body.theme-past .sidebar {
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.07'/%3E%3C/svg%3E");
+    }
+
+    /* 머리 부분: 로고 + 제목 */
+    .app-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 20px 20px 14px;
+    }
+
+    .app-logo {
+      width: 42px;
+      height: 42px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, var(--accent), var(--accent-dark));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
       transition: background 0.5s;
     }
 
     .app-title {
-      padding: 18px 16px 10px;
+      font-family: var(--font-heading);
       font-size: 21px;
-      color: var(--accent);
+      font-weight: 700;
+      color: var(--accent-dark);
+      letter-spacing: -0.02em;
       transition: color 0.5s;
     }
 
-    /* 메인 탭: 과거 / 현재 / 노트 */
+    .app-subtitle {
+      margin-top: 2px;
+      font-size: 12px;
+      color: var(--text-sub);
+    }
+
+    /* 메인 탭: 색깔 배경이 미끄러지듯 움직이는 버튼 묶음 */
     .time-tabs {
+      position: relative;
       display: flex;
-      margin: 0 16px;
-      border: 1px solid var(--accent);
-      border-radius: 8px;
-      overflow: hidden;
+      margin: 0 20px;
+      padding: 4px;
+      border-radius: 14px;
+      background: var(--accent-light);
+      transition: background 0.5s;
+    }
+
+    .tab-indicator {
+      position: absolute;
+      top: 4px;
+      bottom: 4px;
+      left: 4px;
+      width: calc((100% - 8px) / 3);
+      border-radius: 10px;
+      background: var(--accent);
+      box-shadow: 0 3px 10px rgba(0, 0, 0, 0.18);
+      transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1), background 0.5s;
+    }
+
+    .time-tabs[data-active="present"] .tab-indicator {
+      transform: translateX(100%);
+    }
+
+    .time-tabs[data-active="note"] .tab-indicator {
+      transform: translateX(200%);
     }
 
     .time-tab {
+      position: relative;
+      z-index: 1;
       flex: 1;
-      padding: 11px 0;
+      padding: 10px 0;
       border: none;
       background: transparent;
-      color: var(--accent);
+      color: var(--text-sub);
       font-size: 15px;
       font-weight: 700;
       cursor: pointer;
-      transition: background 0.3s, color 0.3s;
+      transition: color 0.3s;
     }
 
     .time-tab.active {
-      background: var(--accent);
       color: #fff;
     }
 
     .swipe-hint {
-      padding: 6px 16px 0;
+      padding: 8px 20px 0;
       font-size: 11px;
-      color: #999;
+      color: var(--text-sub);
+      opacity: 0.75;
       text-align: center;
     }
 
@@ -119,11 +204,11 @@
     }
 
     .slide-from-right {
-      animation: slideFromRight 0.3s ease;
+      animation: slideFromRight 0.35s ease;
     }
 
     .slide-from-left {
-      animation: slideFromLeft 0.3s ease;
+      animation: slideFromLeft 0.35s ease;
     }
 
     @keyframes slideFromRight {
@@ -157,29 +242,31 @@
       display: none !important;
     }
 
-    /* 하위 탭 */
+    /* 하위 탭: 아이콘 + 이름 카드 */
     .theme-tabs {
       display: flex;
       gap: 8px;
-      padding: 12px 16px 0;
+      padding: 14px 20px 0;
     }
 
     .theme-tab {
       flex: 1;
-      padding: 8px 0;
-      border: 1px solid #ddd;
-      border-radius: 999px;
-      background: #fff;
-      color: #555;
-      font-size: 13px;
-      font-weight: 600;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      padding: 10px 0 8px;
+      border: 1.5px solid var(--border);
+      border-radius: 14px;
+      background: var(--surface);
+      color: var(--text-sub);
       cursor: pointer;
-      transition: background 0.2s, border-color 0.2s, color 0.2s;
+      transition: border-color 0.2s, background 0.2s, color 0.2s, transform 0.2s;
     }
 
     .theme-tab:hover {
+      transform: translateY(-2px);
       border-color: var(--accent);
-      color: var(--accent);
     }
 
     .theme-tab.active {
@@ -188,65 +275,163 @@
       color: var(--accent-dark);
     }
 
-    .mode-description {
-      padding: 10px 16px 0;
+    .theme-tab-icon {
+      font-size: 22px;
+      line-height: 1;
+    }
+
+    .theme-tab-name {
       font-size: 13px;
-      color: #666;
-      line-height: 1.5;
+      font-weight: 700;
+    }
+
+    .mode-description {
+      padding: 12px 20px 0;
+      font-size: 13px;
+      line-height: 1.55;
+      color: var(--text-sub);
     }
 
     .pair-hint {
-      padding: 4px 16px 0;
+      display: inline-block;
+      margin: 6px 20px 0;
       font-size: 12px;
-      font-weight: 600;
+      font-weight: 700;
       color: var(--accent);
     }
 
-    /* ===== 비교 막대 ===== */
+    /* ===== 비교 카드 ===== */
     .compare-bar {
-      margin: 12px 16px 0;
-      padding: 12px;
-      border: 1px solid #e5e5e5;
-      border-radius: 10px;
-      background: #fff;
+      margin: 12px 20px 0;
+      padding: 14px;
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      background: var(--surface);
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.04);
+    }
+
+    .compare-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
     }
 
     .compare-title {
-      margin-bottom: 8px;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--text-sub);
+    }
+
+    /* 스위치 모양 토글 */
+    .compare-toggle {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      border: none;
+      background: none;
+      color: var(--text-sub);
       font-size: 12px;
       font-weight: 600;
-      color: #888;
+      cursor: pointer;
+    }
+
+    .switch {
+      position: relative;
+      width: 34px;
+      height: 20px;
+      border-radius: 999px;
+      background: #d4d4d8;
+      transition: background 0.25s;
+    }
+
+    .switch-thumb {
+      position: absolute;
+      top: 2px;
+      left: 2px;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: #fff;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+      transition: transform 0.25s;
+    }
+
+    .compare-toggle.on {
+      color: var(--accent-dark);
+    }
+
+    .compare-toggle.on .switch {
+      background: var(--accent);
+    }
+
+    .compare-toggle.on .switch-thumb {
+      transform: translateX(14px);
     }
 
     .compare-counts {
       display: flex;
       align-items: center;
-      justify-content: space-between;
-      gap: 6px;
-      font-size: 13px;
-      font-weight: 700;
+      gap: 8px;
     }
 
     .compare-side {
-      padding-bottom: 2px;
-      border-bottom: 2px solid transparent;
-      color: var(--accent);
+      flex: 1;
+      padding: 8px 10px;
+      border: 1.5px solid transparent;
+      border-radius: 12px;
+      background: var(--accent-light);
+      text-align: center;
+      transition: border-color 0.3s;
     }
 
-    /* 지금 보고 있는 쪽 밑줄 강조 */
+    /* 지금 보고 있는 쪽 테두리 강조 */
     .compare-side.current {
-      border-bottom-color: var(--accent);
+      border-color: var(--accent);
+    }
+
+    .compare-label {
+      display: block;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--accent-dark);
+    }
+
+    .compare-count {
+      display: block;
+      margin-top: 2px;
+      font-family: var(--font-heading);
+      font-size: 24px;
+      font-weight: 800;
+      color: var(--accent);
+      line-height: 1.1;
+    }
+
+    .compare-count::after {
+      content: "곳";
+      margin-left: 2px;
+      font-size: 12px;
+      font-weight: 600;
     }
 
     .compare-vs {
-      font-size: 11px;
-      color: #aaa;
+      flex-shrink: 0;
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      background: #1f2328;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 10px;
+      font-weight: 800;
     }
 
     .compare-gauge {
       display: flex;
-      height: 8px;
-      margin: 8px 0 10px;
+      height: 6px;
+      margin-top: 12px;
       border-radius: 999px;
       overflow: hidden;
       background: #eee;
@@ -254,66 +439,65 @@
 
     .gauge-past {
       background: var(--past);
-      transition: width 0.5s;
+      transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
     }
 
     .gauge-present {
       background: var(--present);
-      transition: width 0.5s;
+      transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
     }
 
-    /* 양쪽 다 0곳이면 막대를 흐리게 */
     .compare-bar.empty .compare-gauge > div {
-      opacity: 0.25;
+      opacity: 0.2;
     }
 
-    .compare-toggle {
-      width: 100%;
-      padding: 8px 0;
-      border: 1px dashed var(--accent);
-      border-radius: 6px;
-      background: transparent;
-      color: var(--accent-dark);
-      font-size: 13px;
-      font-weight: 600;
-      cursor: pointer;
-    }
-
-    .compare-toggle.on {
-      border-style: solid;
-      background: var(--accent);
-      color: #fff;
-    }
-
-    /* 검색창 */
+    /* ===== 검색창 ===== */
     .search-form {
       display: flex;
       gap: 8px;
-      padding: 12px 16px 16px;
-      border-bottom: 1px solid #eee;
+      padding: 14px 20px;
     }
 
-    .search-form input {
+    .search-box {
       flex: 1;
-      padding: 10px 12px;
-      border: 1px solid #ccc;
-      border-radius: 6px;
-      font-size: 15px;
+      position: relative;
     }
 
-    .search-form input:focus {
+    .search-icon {
+      position: absolute;
+      top: 50%;
+      left: 12px;
+      transform: translateY(-50%);
+      font-size: 14px;
+      opacity: 0.5;
+    }
+
+    .search-box input {
+      width: 100%;
+      padding: 11px 12px 11px 36px;
+      border: 1.5px solid var(--border);
+      border-radius: 12px;
+      background: var(--surface);
+      font-size: 14px;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    .search-box input:focus {
       outline: none;
       border-color: var(--accent);
+      box-shadow: 0 0 0 4px var(--accent-light);
     }
 
     .search-form button {
-      padding: 10px 16px;
+      padding: 0 18px;
       border: none;
-      border-radius: 6px;
+      border-radius: 12px;
       background: var(--accent);
       color: #fff;
-      font-size: 15px;
+      font-size: 14px;
+      font-weight: 700;
       cursor: pointer;
+      transition: background 0.2s;
     }
 
     .search-form button:hover {
@@ -321,55 +505,57 @@
     }
 
     .result-summary {
-      padding: 10px 16px;
-      border-bottom: 1px solid #eee;
-      background: var(--accent-light);
-      color: var(--accent-dark);
+      margin: 0 20px 6px;
       font-size: 12px;
       font-weight: 600;
+      color: var(--text-sub);
     }
 
     .result-summary:empty {
       display: none;
     }
 
-    /* ===== 결과 리스트 ===== */
+    /* ===== 결과 리스트 (카드형) ===== */
     .result-list {
       flex: 1;
       overflow-y: auto;
+      padding: 4px 20px 20px;
       list-style: none;
     }
 
     .result-item {
       display: flex;
       gap: 12px;
-      align-items: flex-start;
-      padding: 14px 16px;
-      border-bottom: 1px solid #f0f0f0;
-      border-left: 4px solid transparent;
+      align-items: center;
+      margin-bottom: 8px;
+      padding: 12px;
+      border: 1.5px solid var(--border);
+      border-radius: 14px;
+      background: var(--surface);
       cursor: pointer;
-      transition: background 0.2s;
+      transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
     }
 
     .result-item:hover {
-      background: var(--accent-light);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
     }
 
     .result-item.selected {
-      background: var(--accent-light);
-      border-left-color: var(--accent);
+      border-color: var(--accent);
+      box-shadow: 0 0 0 4px var(--accent-light);
     }
 
     .result-icon {
       flex-shrink: 0;
-      width: 34px;
-      height: 34px;
-      border-radius: 50%;
-      background: var(--accent);
+      width: 42px;
+      height: 42px;
+      border-radius: 12px;
+      background: var(--accent-light);
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 17px;
+      font-size: 20px;
     }
 
     .result-text {
@@ -378,22 +564,45 @@
     }
 
     .place-name {
-      font-size: 16px;
-      font-weight: 600;
-      margin-bottom: 4px;
+      margin-bottom: 3px;
+      font-family: var(--font-heading);
+      font-size: 15px;
+      font-weight: 700;
     }
 
     .place-address,
     .place-detail {
-      font-size: 13px;
-      color: #666;
+      font-size: 12px;
+      color: var(--text-sub);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .place-detail {
+      margin-top: 2px;
+      color: var(--accent);
+      font-weight: 600;
     }
 
     .message {
-      padding: 16px;
+      padding: 28px 12px;
       font-size: 14px;
-      color: #888;
-      line-height: 1.5;
+      line-height: 1.6;
+      color: var(--text-sub);
+      text-align: center;
+    }
+
+    /* 스크롤바 꾸미기 */
+    .result-list::-webkit-scrollbar,
+    .note-panel::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    .result-list::-webkit-scrollbar-thumb,
+    .note-panel::-webkit-scrollbar-thumb {
+      border-radius: 999px;
+      background: rgba(0, 0, 0, 0.12);
     }
 
     /* ===== 별표 버튼 ===== */
@@ -402,13 +611,18 @@
       background: none;
       line-height: 1;
       cursor: pointer;
+      transition: transform 0.15s;
+    }
+
+    .star-button:active {
+      transform: scale(1.3);
     }
 
     .list-star {
       flex-shrink: 0;
-      padding: 2px 4px;
+      padding: 4px;
       font-size: 22px;
-      color: #ccc;
+      color: #d4d4d8;
     }
 
     .list-star:hover,
@@ -419,41 +633,44 @@
     .popup-star {
       margin-right: 10px;
       font-size: 18px;
-      color: #fff;
+      color: rgba(255, 255, 255, 0.85);
     }
 
     .popup-star.saved {
-      color: #facc15;
+      color: #fde047;
     }
 
     /* ===== 시간여행 노트 ===== */
     .note-panel {
       flex: 1;
       overflow-y: auto;
-      padding: 16px;
+      padding: 18px 20px 20px;
     }
 
     .note-header {
-      margin-bottom: 14px;
+      margin-bottom: 16px;
+      padding: 16px;
+      border-radius: 16px;
+      background: linear-gradient(135deg, var(--accent), var(--accent-dark));
+      color: #fff;
     }
 
     .note-title {
       font-size: 18px;
-      color: var(--accent-dark);
     }
 
     .note-subtitle {
       margin-top: 4px;
       font-size: 13px;
-      color: #666;
+      opacity: 0.85;
     }
 
     .note-section {
-      margin-bottom: 16px;
-      padding: 12px;
-      border: 1px solid #eee;
-      border-radius: 10px;
-      background: #fff;
+      margin-bottom: 14px;
+      padding: 14px;
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      background: var(--surface);
     }
 
     .note-section-title {
@@ -462,12 +679,11 @@
     }
 
     .note-section-count {
-      margin-bottom: 10px;
+      margin-bottom: 12px;
       font-size: 12px;
-      color: #888;
+      color: var(--text-sub);
     }
 
-    /* 과거 | 현재 두 칸으로 나란히 */
     .note-columns {
       display: grid;
       grid-template-columns: 1fr 1fr;
@@ -479,31 +695,39 @@
     }
 
     .note-column-title {
-      margin-bottom: 6px;
-      padding-bottom: 4px;
-      border-bottom: 2px solid var(--accent);
-      color: var(--accent);
+      margin-bottom: 8px;
+      padding: 4px 0;
+      border-radius: 8px;
+      background: var(--accent);
+      color: #fff;
+      font-family: var(--font-heading);
       font-size: 12px;
       font-weight: 700;
+      text-align: center;
     }
 
     .note-card {
       position: relative;
       margin-bottom: 6px;
-      padding: 8px 22px 8px 8px;
-      border-left: 3px solid var(--accent);
-      border-radius: 6px;
+      padding: 8px 22px 8px 9px;
+      border-radius: 10px;
       background: var(--accent-light);
       cursor: pointer;
+      transition: transform 0.2s;
+    }
+
+    .note-card:hover {
+      transform: translateY(-1px);
     }
 
     .note-card.selected {
-      outline: 2px solid var(--accent);
+      box-shadow: 0 0 0 2px var(--accent);
     }
 
     .note-card-name {
+      font-family: var(--font-heading);
       font-size: 13px;
-      font-weight: 600;
+      font-weight: 700;
       line-height: 1.3;
       word-break: keep-all;
     }
@@ -511,7 +735,7 @@
     .note-card-address {
       margin-top: 2px;
       font-size: 11px;
-      color: #777;
+      color: var(--text-sub);
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
@@ -519,12 +743,12 @@
 
     .note-remove {
       position: absolute;
-      top: 4px;
-      right: 4px;
+      top: 5px;
+      right: 5px;
       border: none;
       background: none;
       color: #aaa;
-      font-size: 12px;
+      font-size: 11px;
       cursor: pointer;
     }
 
@@ -533,9 +757,10 @@
     }
 
     .note-empty {
-      padding: 6px 0;
+      padding: 10px 0;
       font-size: 12px;
       color: #bbb;
+      text-align: center;
     }
 
     /* ===== 오른쪽 지도 영역 ===== */
@@ -549,7 +774,7 @@
       height: 100%;
     }
 
-    /* 과거 모드: 지도 바탕 이미지에만 세피아 필터 */
+    /* 과거 모드: 지도 바탕에 세피아 + 가장자리 어둡게(비네팅) */
     #map img {
       transition: filter 0.8s;
     }
@@ -558,34 +783,50 @@
       filter: sepia(0.85) contrast(0.95) brightness(0.95);
     }
 
+    .map-wrapper::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      z-index: 5;
+      pointer-events: none; /* 지도 조작을 막지 않도록 */
+      box-shadow: inset 0 0 140px rgba(70, 40, 5, 0.5);
+      opacity: 0;
+      transition: opacity 0.8s;
+    }
+
+    body.theme-past .map-wrapper::after {
+      opacity: 1;
+    }
+
     .mode-badge {
       position: absolute;
-      top: 16px;
-      left: 16px;
+      top: 18px;
+      left: 18px;
       z-index: 10;
-      padding: 7px 14px;
+      padding: 8px 16px;
       border-radius: 999px;
       background: var(--accent);
       color: #fff;
-      font-size: 13px;
-      font-weight: 600;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+      font-family: var(--font-heading);
+      font-size: 14px;
+      font-weight: 700;
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
       transition: background 0.5s;
     }
 
     .research-button {
       position: absolute;
-      top: 16px;
+      top: 18px;
       left: 50%;
       z-index: 11;
-      padding: 9px 18px;
-      border: 2px solid var(--accent);
+      padding: 10px 20px;
+      border: none;
       border-radius: 999px;
       background: #fff;
       color: var(--accent-dark);
       font-size: 14px;
       font-weight: 700;
-      box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.2);
       cursor: pointer;
       opacity: 0;
       pointer-events: none;
@@ -605,22 +846,23 @@
 
     .locate-button {
       position: absolute;
-      right: 16px;
-      bottom: 24px;
+      right: 18px;
+      bottom: 26px;
       z-index: 10;
-      width: 46px;
-      height: 46px;
+      width: 48px;
+      height: 48px;
       border: none;
-      border-radius: 50%;
+      border-radius: 16px;
       background: #fff;
       color: var(--my-location);
       font-size: 22px;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.2);
       cursor: pointer;
+      transition: transform 0.2s;
     }
 
     .locate-button:hover {
-      background: #fef2f2;
+      transform: translateY(-2px);
     }
 
     /* ===== 장소 핀 ===== */
@@ -629,26 +871,25 @@
       top: -8px;
       width: 38px;
       height: 38px;
-      border: 2px solid #fff;
+      border: 2.5px solid #fff;
       border-radius: 50% 50% 50% 0;
       transform: rotate(-45deg);
       display: flex;
       align-items: center;
       justify-content: center;
-      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.35);
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.35);
       cursor: pointer;
       transition: transform 0.2s;
     }
 
     .place-pin.past {
-      background: var(--past);
+      background: linear-gradient(135deg, #b8792a, var(--past));
     }
 
     .place-pin.present {
-      background: var(--present);
+      background: linear-gradient(135deg, #4f86f7, var(--present));
     }
 
-    /* 비교 모드에서 함께 보이는 짝 주제 핀은 조금 작게 */
     .place-pin.pair {
       top: -6px;
       width: 30px;
@@ -722,19 +963,31 @@
       background: var(--my-location);
       color: #fff;
       font-size: 11px;
-      font-weight: 600;
+      font-weight: 700;
     }
 
     /* ===== 상세 팝업 ===== */
     .detail-popup {
       position: relative;
-      bottom: 56px;
-      width: 260px;
-      border-radius: 12px;
+      bottom: 58px;
+      width: 270px;
+      border-radius: 16px;
       background: #fff;
-      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
       font-size: 13px;
       cursor: default;
+      animation: popupIn 0.2s ease;
+    }
+
+    @keyframes popupIn {
+      from {
+        transform: translateY(6px);
+        opacity: 0;
+      }
+      to {
+        transform: none;
+        opacity: 1;
+      }
     }
 
     .detail-popup::after {
@@ -752,15 +1005,15 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 10px 14px;
-      border-radius: 12px 12px 0 0;
-      background: var(--accent);
+      padding: 11px 14px;
+      border-radius: 16px 16px 0 0;
+      background: linear-gradient(135deg, var(--accent), var(--accent-dark));
       color: #fff;
     }
 
     .popup-category {
       font-size: 12px;
-      font-weight: 600;
+      font-weight: 700;
     }
 
     .popup-header-buttons {
@@ -778,39 +1031,39 @@
     }
 
     .popup-body {
-      padding: 12px 14px 14px;
+      padding: 14px;
     }
 
     .popup-name {
-      margin-bottom: 8px;
-      font-size: 16px;
+      margin-bottom: 10px;
+      font-family: var(--font-heading);
+      font-size: 17px;
       font-weight: 700;
     }
 
     .popup-row {
-      margin-bottom: 4px;
+      margin-bottom: 5px;
       color: #555;
-      line-height: 1.4;
+      line-height: 1.45;
     }
 
     .popup-actions {
       display: flex;
       gap: 8px;
-      margin-top: 12px;
+      margin-top: 14px;
     }
 
     .popup-actions a {
       flex: 1;
-      padding: 8px 0;
-      border-radius: 6px;
+      padding: 9px 0;
+      border-radius: 10px;
       font-size: 13px;
-      font-weight: 600;
+      font-weight: 700;
       text-align: center;
       text-decoration: none;
     }
 
     .popup-link-detail {
-      border: 1px solid var(--accent);
       background: var(--accent-light);
       color: var(--accent-dark);
     }
@@ -829,16 +1082,15 @@
       .sidebar {
         width: 100%;
         height: 58vh;
-        border-right: none;
-        border-bottom: 1px solid #ddd;
+        box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
       }
 
       .map-wrapper {
         height: 42vh;
       }
 
-      /* 공간이 좁으니 제목과 설명은 숨김 */
-      .app-title,
+      /* 공간이 좁으니 머리 부분과 설명은 숨김 */
+      .app-header,
       .mode-description {
         display: none;
       }
@@ -848,7 +1100,7 @@
       }
 
       .research-button {
-        top: 60px;
+        top: 64px;
       }
     }
   </style>
@@ -866,15 +1118,22 @@
   <div class="container">
     <!-- ===== 왼쪽 사이드바 ===== -->
     <aside id="sidebar" class="sidebar">
-      <h1 class="app-title">⏳ 시간여행자 지도</h1>
+      <header class="app-header">
+        <div class="app-logo">⏳</div>
+        <div>
+          <h1 class="app-title">시간여행자 지도</h1>
+          <p class="app-subtitle">같은 동네, 다른 시간</p>
+        </div>
+      </header>
 
-      <!-- 메인 탭 -->
-      <div class="time-tabs">
+      <!-- 메인 탭 (tab-indicator가 선택된 탭 뒤로 미끄러짐) -->
+      <div id="timeTabs" class="time-tabs" data-active="past">
+        <span class="tab-indicator"></span>
         <button class="time-tab active" data-view="past">과거</button>
         <button class="time-tab" data-view="present">현재</button>
         <button id="noteTab" class="time-tab" data-view="note">📒 노트</button>
       </div>
-      <p class="swipe-hint">👆 좌우로 밀거나 ← → 키로 과거 · 현재 · 노트를 넘겨 보세요</p>
+      <p class="swipe-hint">좌우로 밀거나 ← → 키로 넘겨 보세요</p>
 
       <div id="sidebarContent" class="sidebar-content">
         <!-- 탐색 화면 (과거 / 현재) -->
@@ -883,21 +1142,35 @@
         <p id="pairHint" class="pair-hint explore-only"></p>
 
         <div id="compareBar" class="compare-bar explore-only" hidden>
-          <p class="compare-title">⚖️ 이 지역의 과거 vs 현재</p>
+          <div class="compare-head">
+            <span class="compare-title">⚖️ 이 지역의 과거 vs 현재</span>
+            <button id="compareToggle" class="compare-toggle" type="button" aria-pressed="false">
+              <span class="switch"><span class="switch-thumb"></span></span>
+              지도에 함께 보기
+            </button>
+          </div>
           <div class="compare-counts">
-            <span id="comparePast" class="compare-side theme-past"></span>
-            <span class="compare-vs">vs</span>
-            <span id="comparePresent" class="compare-side theme-present"></span>
+            <div id="comparePast" class="compare-side theme-past">
+              <span id="comparePastLabel" class="compare-label"></span>
+              <strong id="comparePastCount" class="compare-count"></strong>
+            </div>
+            <span class="compare-vs">VS</span>
+            <div id="comparePresent" class="compare-side theme-present">
+              <span id="comparePresentLabel" class="compare-label"></span>
+              <strong id="comparePresentCount" class="compare-count"></strong>
+            </div>
           </div>
           <div class="compare-gauge">
             <div id="gaugePast" class="gauge-past"></div>
             <div id="gaugePresent" class="gauge-present"></div>
           </div>
-          <button id="compareToggle" class="compare-toggle" type="button"></button>
         </div>
 
         <form id="searchForm" class="search-form explore-only">
-          <input id="keywordInput" type="text" placeholder="장소를 직접 검색할 수도 있어요" />
+          <div class="search-box">
+            <span class="search-icon">🔍</span>
+            <input id="keywordInput" type="text" placeholder="장소를 직접 검색할 수도 있어요" />
+          </div>
           <button type="submit">검색</button>
         </form>
 
@@ -933,15 +1206,14 @@
     const STORAGE_KEY = "timeTravelNote";                     // 브라우저 저장소 이름
     const DEFAULT_POSITION = { lat: 37.5665, lng: 126.978 };  // 기본 위치 (서울시청)
     const VIEW_ORDER = ["past", "present", "note"];           // 스와이프 순서
-    const MODE_COLORS = { past: "#a16207", present: "#2563eb" };
+    const MODE_COLORS = { past: "#9a5b13", present: "#2563eb" };
 
     // 모드별 하위 주제 (같은 순서끼리 짝, categoryCode가 없으면 keyword로 검색)
-     // 모드별 하위 주제 (같은 순서끼리 짝, categoryCode가 없으면 keyword로 검색)
     const TIME_MODES = {
       past: {
         label: "과거",
         themes: [
-          { name: "고궁", icon: "🏯", keyword: "고", description: "옛 왕실의 시간이 남아 있는 고궁을 찾아봅니다." },
+          { name: "고궁", icon: "🏯", keyword: "고궁", description: "옛 왕실의 시간이 남아 있는 고궁을 찾아봅니다." },
           { name: "전통시장", icon: "🧺", keyword: "전통시장", description: "동네 사람들이 모여 장을 보던 전통시장을 찾아봅니다." },
           { name: "향교", icon: "📜", keyword: "향교", description: "조선 시대 나라에서 세운 지방 교육기관, 향교를 찾아봅니다." },
         ],
@@ -967,7 +1239,7 @@
     let currentView = "past";      // "past" | "present" | "note"
     let currentThemeIndex = 0;     // 하위 탭 번호
     let compareMode = false;       // 지도에 함께 보기 켜짐 여부
-    let lastPairResult = null;     // 마지막 짝 주제 검색 결과 (비교 모드 켤 때 사용)
+    let lastPairResult = null;     // 마지막 짝 주제 검색 결과
     let searchCounter = 0;         // 늦게 도착한 옛날 검색 결과를 무시하기 위한 번호
     let savedPlaces = loadSavedPlaces();
     let userPosition = null;
@@ -985,6 +1257,7 @@
 
     const sidebar = document.getElementById("sidebar");
     const sidebarContent = document.getElementById("sidebarContent");
+    const timeTabsContainer = document.getElementById("timeTabs");
     const viewTabs = document.querySelectorAll(".time-tab");
     const noteTab = document.getElementById("noteTab");
     const themeTabs = document.getElementById("themeTabs");
@@ -993,6 +1266,10 @@
     const compareBar = document.getElementById("compareBar");
     const comparePast = document.getElementById("comparePast");
     const comparePresent = document.getElementById("comparePresent");
+    const comparePastLabel = document.getElementById("comparePastLabel");
+    const comparePastCount = document.getElementById("comparePastCount");
+    const comparePresentLabel = document.getElementById("comparePresentLabel");
+    const comparePresentCount = document.getElementById("comparePresentCount");
     const gaugePast = document.getElementById("gaugePast");
     const gaugePresent = document.getElementById("gaugePresent");
     const compareToggle = document.getElementById("compareToggle");
@@ -1142,6 +1419,7 @@
 
       document.body.className = "theme-" + newView;
       sidebar.classList.toggle("note-view", newView === "note");
+      timeTabsContainer.dataset.active = newView; // 탭 배경이 미끄러지는 위치
 
       viewTabs.forEach(function (tab) {
         tab.classList.toggle("active", tab.dataset.view === newView);
@@ -1189,8 +1467,10 @@
       themeTabs.innerHTML = "";
 
       TIME_MODES[currentView].themes.forEach(function (theme, index) {
-        const tabButton = createElement("button", "theme-tab", theme.icon + " " + theme.name);
+        const tabButton = createElement("button", "theme-tab");
         tabButton.type = "button";
+        tabButton.appendChild(createElement("span", "theme-tab-icon", theme.icon));
+        tabButton.appendChild(createElement("span", "theme-tab-name", theme.name));
 
         if (index === currentThemeIndex) {
           tabButton.classList.add("active");
@@ -1397,10 +1677,10 @@
 
       const theme = getTheme(info.mode, info.themeIndex);
       renderResultList(mainResult.places, info.mode, info.themeIndex, info.area.distanceLabel);
-      resultSummary.textContent = "📌 " + theme.name + " · " + info.area.areaText + " · 지도에 " + mainResult.places.length + "곳";
+      resultSummary.textContent = "📌 " + info.area.areaText + " · 지도에 " + mainResult.places.length + "곳";
 
       if (mainResult.places.length === 0) {
-        showMessage("이 지역에서는 " + theme.name + "을(를) 찾지 못했습니다. 지도를 옮기거나 축소한 뒤 다시 찾아보세요.");
+        showMessage("이 지역에서는 " + theme.name + "을(를) 찾지 못했어요.\n지도를 옮기거나 축소한 뒤 다시 찾아보세요.");
       }
 
       if (compareMode) {
@@ -1412,7 +1692,7 @@
       }
     }
 
-    // ===== 비교 막대 갱신 (왼쪽은 항상 과거, 오른쪽은 항상 현재) =====
+    // ===== 비교 카드 갱신 (왼쪽은 항상 과거, 오른쪽은 항상 현재) =====
     function updateCompareBar(mainResult, pairResult, info) {
       const pastResult = info.mode === "past" ? mainResult : pairResult;
       const presentResult = info.mode === "past" ? pairResult : mainResult;
@@ -1422,8 +1702,11 @@
       const pastCount = pastResult.isError ? 0 : pastResult.totalCount;
       const presentCount = presentResult.isError ? 0 : presentResult.totalCount;
 
-      comparePast.textContent = pastTheme.icon + " " + pastTheme.name + " " + pastCount + "곳";
-      comparePresent.textContent = presentTheme.icon + " " + presentTheme.name + " " + presentCount + "곳";
+      comparePastLabel.textContent = pastTheme.icon + " " + pastTheme.name;
+      comparePastCount.textContent = pastCount;
+      comparePresentLabel.textContent = presentTheme.icon + " " + presentTheme.name;
+      comparePresentCount.textContent = presentCount;
+
       comparePast.classList.toggle("current", info.mode === "past");
       comparePresent.classList.toggle("current", info.mode === "present");
 
@@ -1438,8 +1721,8 @@
     }
 
     function updateCompareToggle() {
-      compareToggle.textContent = compareMode ? "⚖️ 지도에 함께 보기 ON" : "⚖️ 지도에 함께 보기 OFF";
       compareToggle.classList.toggle("on", compareMode);
+      compareToggle.setAttribute("aria-pressed", compareMode ? "true" : "false");
     }
 
     // 짝 주제 핀을 지도에 추가
@@ -1558,7 +1841,7 @@
       return entry;
     }
 
-    // 리스트 항목 하나 만들기
+    // 리스트 항목(카드) 하나 만들기
     function createResultItem(entry) {
       const place = entry.place;
       const listItem = createElement("li", "result-item");
@@ -1814,7 +2097,7 @@
       notePanel.appendChild(header);
 
       if (savedPlaces.length === 0) {
-        notePanel.appendChild(createElement("p", "message", "아직 저장한 장소가 없어요. 과거·현재 탭에서 ☆를 눌러 장소를 모아 보세요."));
+        notePanel.appendChild(createElement("p", "message", "아직 저장한 장소가 없어요.\n과거·현재 탭에서 ☆를 눌러 장소를 모아 보세요."));
         return;
       }
 
@@ -1913,8 +2196,8 @@
           color: "#fff",
           textAlign: "center",
           fontSize: "14px",
-          fontWeight: "700",
-          boxShadow: "0 2px 8px rgba(0, 0, 0, 0.3)",
+          fontWeight: "800",
+          boxShadow: "0 4px 12px rgba(0, 0, 0, 0.3)",
         };
       };
 
@@ -1983,7 +2266,7 @@
     function createElement(tagName, className, text) {
       const element = document.createElement(tagName);
       if (className) element.className = className;
-      if (text) element.textContent = text;
+      if (text !== undefined && text !== null && text !== "") element.textContent = text;
       return element;
     }
 
@@ -2017,7 +2300,9 @@
 
     function showMessage(text) {
       resultList.innerHTML = "";
-      resultList.appendChild(createElement("li", "message", text));
+      const messageItem = createElement("li", "message", text);
+      messageItem.style.whiteSpace = "pre-line"; // \n 줄바꿈 표시
+      resultList.appendChild(messageItem);
     }
   </script>
 </body>
